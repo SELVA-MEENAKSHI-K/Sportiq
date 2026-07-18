@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sportiq — AI Stadium Operations & Fan Experience Platform</title>
+  
+  <!-- SEO & Accessibility -->
+  <meta name="description" content="Sportiq is a premium AI-first stadium operations platform for the FIFA World Cup 2026. Made for MetLife Arena.">
+  
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="styles/theme.css">
+  <link rel="stylesheet" href="styles/main.css">
+  
+  <style>
+    /* Styling for Floating AI Assistant Widget */
+    .assistant-fab {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-blue) 0%, #1e40af 100%);
+      box-shadow: 0 8px 30px rgba(37, 99, 235, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #fff;
+      font-size: 1.3rem;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1001;
+      transition: var(--transition-smooth);
+    }
+    .assistant-fab:hover {
+      transform: scale(1.08) rotate(12deg);
+      box-shadow: 0 12px 40px rgba(37, 99, 235, 0.5);
+    }
+    .assistant-panel {
+      position: fixed;
+      bottom: 90px;
+      right: 24px;
+      width: 380px;
+      height: 520px;
+      z-index: 1002;
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--border-radius-lg);
+      transform: scale(0.9) translateY(40px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .assistant-panel.show {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .chat-messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chat-bubble {
+      padding: 10px 14px;
+      border-radius: var(--border-radius-md);
+      font-size: 0.8rem;
+      max-width: 80%;
+      line-height: 1.45;
+    }
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: var(--accent-blue);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      font-weight: 500;
+    }
+    .chat-bubble.ai {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-bottom-left-radius: 4px;
+    }
+    
+    /* Skeleton Loader overrides */
+    .skeleton-loading {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-pulse 1.5s infinite;
+      border-radius: 6px;
+    }
+    @keyframes skeleton-pulse {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-root">
+    <!-- Sidebar -->
+    <nav id="sidebar"></nav>
+    
+    <!-- Main Content Wrapper -->
+    <div id="main-wrapper">
+      <!-- Sticky Header -->
+      <header id="header"></header>
+      
+      <!-- Breadcrumb indicator -->
+      <div class="breadcrumb-container" id="sportiq-breadcrumbs-bar">
+        <span>Sportiq</span> <i class="fa-solid fa-angle-right mx-1" style="font-size: 0.65rem;"></i> <span class="breadcrumb-item-active" id="active-breadcrumb-node">Dashboard</span>
+      </div>
+
+      <!-- Content Container -->
+      <main id="view-content"></main>
+    </div>
+  </div>
+
+  <!-- Persistent Floating Multilingual AI Assistant Panel -->
+  <div id="floating-ai-assistant">
+    <div class="assistant-panel sportiq-card" id="chat-assistant-panel" style="padding: 0;">
+      <!-- Chat Header -->
+      <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="border-color: var(--border-color) !important; background: rgba(0, 0, 0, 0.15);">
+        <div class="d-flex align-items-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles text-primary" style="filter: drop-shadow(0 0 4px var(--accent-blue));"></i>
+          <div>
+            <div class="fw-bold" style="font-size: 0.85rem; line-height: 1.2;">Sportiq Assistant</div>
+            <div style="font-size: 0.65rem; color: var(--text-muted);">Real-time operations co-pilot</div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <select class="form-select form-select-sm bg-transparent border-0 text-muted p-0 pe-4" style="font-size: 0.7rem; width: auto;" id="assistant-lang-select" aria-label="Select floating assistant language">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="hi">हिन्दी</option>
+            <option value="ta">தமிழ்</option>
+          </select>
+          <button type="button" class="btn-close btn-close-white" style="font-size: 0.7rem;" id="close-assistant-btn" aria-label="Close assistant"></button>
+        </div>
+      </div>
+      
+      <!-- Chat Messages Body -->
+      <div class="chat-messages" id="assistant-chat-messages">
+        <div class="chat-bubble ai animate-fade-in">
+          Hello! I am your Sportiq Operations Co-pilot. How can I assist you with MetLife Stadium management today?
+        </div>
+      </div>
+      
+      <!-- Chat Input Footer -->
+      <div class="p-3 border-top" style="border-color: var(--border-color) !important; background: rgba(0, 0, 0, 0.05);">
+        <div class="input-group">
+          <input type="text" class="form-control glass-input" style="font-size: 0.8rem; border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);" placeholder="Ask co-pilot..." id="assistant-chat-input" aria-label="Ask co-pilot chat input">
+          <button class="btn btn-outline-secondary glass-input" style="border-radius: 0;" type="button" id="assistant-voice-btn" title="Voice Input" aria-label="Speech recognition voice input"><i class="fa-solid fa-microphone"></i></button>
+          <button class="btn btn-primary fw-bold px-3" style="font-size: 0.8rem; border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;" type="button" id="assistant-send-btn" aria-label="Send message">Send</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Floating FAB Button -->
+    <div class="assistant-fab" id="chat-assistant-fab" title="AI Assistant Co-pilot" role="button" aria-label="Toggle floating AI assistant panel" tabindex="0">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </div>
+  </div>
+
+  <!-- Command Palette Raycast Modal -->
+  <div class="command-palette-backdrop" id="command-palette-modal">
+    <div class="command-palette-box">
+      <div class="command-palette-search">
+        <i class="fa-solid fa-terminal text-muted" style="font-size: 1.1rem;"></i>
+        <input type="text" class="command-palette-input" id="command-palette-search-input" placeholder="Type a view or operation command..." autofocus aria-label="Command search input">
+        <span class="command-palette-item-shortcut">ESC</span>
+      </div>
+      <div class="command-palette-results" id="command-palette-list">
+        <!-- Route links filled dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- ChartJS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Core Routing & App Orchestrator Script -->
+  <script type="module">
+    import { Sidebar } from './components/sidebar.js';
+    import { Header } from './components/header.js';
+    import { firebase } from './services/firebase.js';
+    import { toast } from './components/toast.js';
+    import { api } from './services/api.js';
+
+    // Global application instances
+    let sidebarInstance;
+    let headerInstance;
+    let currentModule = null;
+
+    // Route mappings
+    const routes = {
+      'dashboard': './modules/dashboard.js',
+      'tickets': './modules/tickets.js',
+      'crowd': './modules/crowd.js',
+      'navigation': './modules/navigation.js',
+      'emergency': './modules/emergency.js',
+      'volunteers': './modules/volunteers.js',
+      'transport': './modules/transport.js',
+      'food': './modules/food.js',
+      'assistant': './modules/assistant.js',
+      'analytics': './modules/analytics.js',
+      'sustainability': './modules/sustainability.js',
+      'command': './modules/command.js'
+    };
+
+    /**
+     * App Router
+     */
+    async function router() {
+      let hash = window.location.hash || '#/dashboard';
+      let route = hash.replace(/^#\//, '');
+      
+      if (!routes[route]) {
+        route = 'dashboard';
+        window.location.hash = '#/dashboard';
+      }
+
+      // Update sidebar active selection
+      if (sidebarInstance) {
+        sidebarInstance.setActive(route);
+      }
+
+      // Update Breadcrumb
+      const node = document.getElementById('active-breadcrumb-node');
+      if (node) {
+        node.textContent = route.charAt(0).toUpperCase() + route.slice(1);
+      }
+
+      // Handle full-screen Command Center layout shifts
+      const sidebarEl = document.getElementById('sidebar');
+      const wrapperEl = document.getElementById('main-wrapper');
+      if (sidebarEl && wrapperEl) {
+        if (route === 'command') {
+          sidebarEl.style.display = 'none';
+          wrapperEl.style.marginLeft = '24px';
+        } else {
+          sidebarEl.style.display = 'flex';
+          wrapperEl.style.marginLeft = '308px';
+        }
+      }
+
+      const contentArea = document.getElementById('view-content');
+      
+      // Render simple skeleton loader during import
+      contentArea.innerHTML = `
+        <div class="p-4">
+          <div class="skeleton-loading mb-3" style="height: 35px; width: 250px;"></div>
+          <div class="skeleton-loading mb-4" style="height: 15px; width: 450px;"></div>
+          <div class="row g-4 mb-4">
+            <div class="col-md-6 col-lg-3"><div class="skeleton-loading" style="height: 110px;"></div></div>
+            <div class="col-md-6 col-lg-3"><div class="skeleton-loading" style="height: 110px;"></div></div>
+            <div class="col-md-6 col-lg-3"><div class="skeleton-loading" style="height: 110px;"></div></div>
+            <div class="col-md-6 col-lg-3"><div class="skeleton-loading" style="height: 110px;"></div></div>
+          </div>
+          <div class="skeleton-loading" style="height: 320px;"></div>
+        </div>
+      `;
+
+      try {
+        const modulePath = routes[route];
+        const module = await import(modulePath);
+        
+        if (currentModule && typeof currentModule.destroy === 'function') {
+          currentModule.destroy();
+        }
+
+        currentModule = module;
+        await module.init(contentArea);
+      } catch (err) {
+        console.error(`Failed to load module for route ${route}:`, err);
+        contentArea.innerHTML = `
+          <div class="text-center p-5 animate-fade-in" style="color: var(--accent-red);">
+            <i class="fa-solid fa-circle-exclamation mb-3" style="font-size: 3.5rem; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.3));"></i>
+            <h3 class="fw-bold mb-2">Module Load Anomaly</h3>
+            <p class="text-secondary mb-4 mx-auto" style="max-width: 440px; font-size: 0.95rem;">
+              An operations anomaly was detected during compilation of the <strong>${route.toUpperCase()}</strong> telemetries.
+            </p>
+            <div class="sportiq-card text-start mx-auto mb-4" style="max-width: 600px; padding: 16px; border-color: rgba(239,68,68,0.25);">
+              <div style="font-size: 0.75rem; color: var(--text-secondary); font-family: monospace; line-height: 1.45;">
+                <span class="text-danger fw-bold">Anomaly Type:</span> ${err.message || err}
+              </div>
+            </div>
+            <a href="#/dashboard" class="btn btn-primary px-4 fw-bold">Return to Dashboard</a>
+          </div>
+        `;
+      }
+    }
+
+    /**
+     * Floating Assistant Co-pilot Actions
+     */
+    function initFloatingAssistant() {
+      const fab = document.getElementById('chat-assistant-fab');
+      const panel = document.getElementById('chat-assistant-panel');
+      const closeBtn = document.getElementById('close-assistant-btn');
+      const sendBtn = document.getElementById('assistant-send-btn');
+      const chatInput = document.getElementById('assistant-chat-input');
+      const messagesContainer = document.getElementById('assistant-chat-messages');
+      const voiceBtn = document.getElementById('assistant-voice-btn');
+      const langSelect = document.getElementById('assistant-lang-select');
+
+      fab.addEventListener('click', () => panel.classList.toggle('show'));
+      closeBtn.addEventListener('click', () => panel.classList.remove('show'));
+
+      const sendMessage = async () => {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        appendBubble('user', text);
+        chatInput.value = '';
+
+        const typingId = appendTypingIndicator();
+
+        try {
+          const selectedLang = langSelect.value;
+          const prompt = `[Language context: ${selectedLang}] The user asks: ${text}`;
+          const systemInstruction = `You are the official Sportiq Stadium Operations AI Co-pilot for MetLife Stadium. Respond directly, concisely, and professionally. Respect selected language: ${selectedLang}.`;
+          
+          const reply = await api.callGemini(prompt, systemInstruction);
+          removeTypingIndicator(typingId);
+          appendBubble('ai', reply);
+        } catch (err) {
+          removeTypingIndicator(typingId);
+          appendBubble('ai', 'My communication link is currently congested. Please review connectivity or check fallback procedures.');
+        }
+      };
+
+      sendBtn.addEventListener('click', sendMessage);
+      chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+
+      voiceBtn.addEventListener('click', () => {
+        toast.show('info', 'Voice Command Active', 'Listening to voice coordinates...');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          const rec = new SpeechRecognition();
+          rec.lang = langSelect.value;
+          rec.onresult = (e) => {
+            const resultText = e.results[0][0].transcript;
+            chatInput.value = resultText;
+            sendMessage();
+          };
+          rec.onerror = (e) => {
+            console.error('Speech Recognition Error:', e.error);
+            if (e.error === 'not-allowed') {
+              toast.show('danger', 'Microphone Blocked', 'Please allow microphone access in your browser settings bar.');
+            } else if (e.error === 'no-speech') {
+              toast.show('warning', 'No Speech Detected', 'No voice detected. Please try speaking again.');
+            } else {
+              toast.show('danger', 'Voice Error', `Speech recognition error: ${e.error}`);
+            }
+          };
+          rec.start();
+        } else {
+          setTimeout(() => {
+            chatInput.value = 'Where is the main taxi stand?';
+            toast.show('success', 'Voice Recognition Mocked', 'Transcribed: "Where is the main taxi stand?"');
+          }, 1500);
+        }
+      });
+
+      function appendBubble(sender, text) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${sender} animate-fade-in`;
+        bubble.textContent = text;
+        messagesContainer.appendChild(bubble);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function appendTypingIndicator() {
+        const id = 'typing_' + Date.now();
+        const bubble = document.createElement('div');
+        bubble.id = id;
+        bubble.className = 'chat-bubble ai animate-fade-in d-flex gap-1 align-items-center';
+        bubble.innerHTML = `
+          <div class="spinner-grow spinner-grow-sm text-primary" style="width: 6px; height: 6px;" role="status"></div>
+          <div class="spinner-grow spinner-grow-sm text-primary" style="width: 6px; height: 6px; animation-delay: 0.2s;" role="status"></div>
+          <div class="spinner-grow spinner-grow-sm text-primary" style="width: 6px; height: 6px; animation-delay: 0.4s;" role="status"></div>
+        `;
+        messagesContainer.appendChild(bubble);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        return id;
+      }
+
+      function removeTypingIndicator(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      }
+    }
+
+    /**
+     * Initializes the Raycast Ctrl+K Command Palette
+     */
+    function initCommandPalette() {
+      const modal = document.getElementById('command-palette-modal');
+      const searchInput = document.getElementById('command-palette-search-input');
+      const listContainer = document.getElementById('command-palette-list');
+
+      // Command entries
+      const commands = [
+        { label: 'Go to Executive Dashboard', route: 'dashboard', icon: 'fa-gauge-high', category: 'Navigation' },
+        { label: 'Go to AI Command Center', route: 'command', icon: 'fa-tower-observation', category: 'Navigation' },
+        { label: 'Open Ticket & Entry Validation', route: 'tickets', icon: 'fa-ticket', category: 'Navigation' },
+        { label: 'Open Crowd Control Heatmap', route: 'crowd', icon: 'fa-users-line', category: 'Navigation' },
+        { label: 'Open Seating Navigation Wayfinder', route: 'navigation', icon: 'fa-map-location-dot', category: 'Navigation' },
+        { label: 'Open Emergency Dispatch Board', route: 'emergency', icon: 'fa-shield-halved', category: 'Navigation' },
+        { label: 'Open Volunteers Scheduling', route: 'volunteers', icon: 'fa-handshake', category: 'Navigation' },
+        { label: 'Open Transit & Parking HUD', route: 'transport', icon: 'fa-square-parking', category: 'Navigation' },
+        { label: 'Open Concessions & Shop Directory', route: 'food', icon: 'fa-utensils', category: 'Navigation' },
+        { label: 'Open Multilingual Voice Chat', route: 'assistant', icon: 'fa-language', category: 'Navigation' },
+        { label: 'Open Operations Analytics', route: 'analytics', icon: 'fa-chart-pie', category: 'Navigation' },
+        { label: 'Open Sustainability & Energy Monitor', route: 'sustainability', icon: 'fa-leaf', category: 'Navigation' }
+      ];
+
+      // Key listeners
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          modal.classList.add('show');
+          searchInput.focus();
+          _renderPalette('');
+        }
+        if (e.key === 'Escape') {
+          modal.classList.remove('show');
+        }
+      });
+
+      // Search input changes
+      searchInput.addEventListener('input', (e) => {
+        _renderPalette(e.target.value.toLowerCase());
+      });
+
+      // Clicking backdrop closes palette
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('show');
+        }
+      });
+
+      function _renderPalette(filter) {
+        const filtered = commands.filter(c => 
+          c.label.toLowerCase().includes(filter) || c.route.toLowerCase().includes(filter)
+        );
+
+        if (filtered.length === 0) {
+          listContainer.innerHTML = `<div class="text-center text-muted py-4">No matching Sportiq commands found.</div>`;
+          return;
+        }
+
+        listContainer.innerHTML = filtered.map((c, index) => `
+          <div class="command-palette-item ${index === 0 ? 'active' : ''}" data-route="${c.route}">
+            <div class="d-flex align-items-center gap-3">
+              <i class="fa-solid ${c.icon} text-muted"></i>
+              <span>${c.label}</span>
+            </div>
+            <span class="command-palette-item-shortcut">${c.category}</span>
+          </div>
+        `).join('');
+
+        // Bind clicks
+        listContainer.querySelectorAll('.command-palette-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            const route = e.currentTarget.getAttribute('data-route');
+            window.location.hash = `#/${route}`;
+            modal.classList.remove('show');
+          });
+        });
+      }
+    }
+
+    // App Initialization
+    async function initApp() {
+      await firebase.init();
+
+      sidebarInstance = new Sidebar('sidebar');
+      sidebarInstance.render();
+
+      headerInstance = new Header('header');
+      headerInstance.render();
+
+      firebase.onAuthStateChanged((user) => {
+        if (user) {
+          headerInstance.setProfile(user);
+        }
+      });
+
+      // Initialize palette
+      initCommandPalette();
+
+      // Bind search input in header to trigger palette too
+      document.getElementById('global-search-input')?.addEventListener('focus', () => {
+        const modal = document.getElementById('command-palette-modal');
+        modal.classList.add('show');
+        document.getElementById('command-palette-search-input').focus();
+      });
+
+      initFloatingAssistant();
+
+      window.addEventListener('hashchange', router);
+      router();
+
+      setTimeout(() => {
+        toast.show('info', 'Live Operational update', 'Solar panel network efficiency is peaked at 98.4%.');
+      }, 7000);
+    }
+
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>

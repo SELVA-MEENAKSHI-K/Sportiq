@@ -1,0 +1,144 @@
+/* Sportiq Premium Design System Variables */
+:root {
+  /* Font Family - Apple/Figma style */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  
+  /* Borders & Radii */
+  --border-radius-sm: 8px;
+  --border-radius-md: 16px;
+  --border-radius-lg: 20px;
+  
+  /* Color Palette System (Sportiq Default Dark) */
+  --bg-primary: #07111F;
+  --bg-secondary: #0F172A;
+  --bg-card: #111827;
+  
+  --accent-blue: #2563EB;
+  --accent-blue-glow: rgba(37, 99, 235, 0.15);
+  
+  --accent-green: #22C55E;
+  --accent-green-glow: rgba(34, 197, 94, 0.15);
+  
+  --accent-orange: #F59E0B;
+  --accent-orange-glow: rgba(245, 158, 11, 0.15);
+  
+  --accent-red: #EF4444;
+  --accent-red-glow: rgba(239, 68, 68, 0.15);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-hover: rgba(255, 255, 255, 0.15);
+  
+  /* System glows */
+  --card-shadow: 0 4px 30px rgba(0, 0, 0, 0.45);
+  --header-bg: rgba(7, 17, 31, 0.8);
+}
+
+/* Light Theme Variables */
+[data-theme="light"] {
+  --header-bg: rgba(248, 250, 252, 0.8);
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #F1F5F9;
+  --bg-card: #FFFFFF;
+  
+  --accent-blue: #2563EB;
+  --accent-blue-glow: rgba(37, 99, 235, 0.08);
+  
+  --accent-green: #16A34A;
+  --accent-green-glow: rgba(22, 163, 74, 0.08);
+  
+  --accent-orange: #D97706;
+  --accent-orange-glow: rgba(217, 119, 6, 0.08);
+  
+  --accent-red: #DC2626;
+  --accent-red-glow: rgba(220, 38, 38, 0.08);
+  
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  
+  --border-color: rgba(15, 23, 42, 0.08);
+  --border-color-hover: rgba(15, 23, 42, 0.15);
+  
+  --card-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+}
+
+/* Base resets with modern defaults */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Premium Card Panels */
+.sportiq-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 24px;
+  transition: var(--transition-smooth);
+}
+
+.sportiq-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(37, 99, 235, 0.35); /* Accent Blue glow */
+  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.08);
+}
+
+/* Warning specific card glow */
+.sportiq-card-warning {
+  border-color: rgba(245, 158, 11, 0.25);
+}
+.sportiq-card-warning:hover {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 12px 40px rgba(245, 158, 11, 0.08);
+}
+
+/* Threat specific card glow */
+.sportiq-card-danger {
+  border-color: rgba(239, 68, 68, 0.25);
+}
+.sportiq-card-danger:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 12px 40px rgba(239, 68, 68, 0.08);
+}
+
+/* Inputs styling */
+.sportiq-input {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary) !important;
+  border-radius: var(--border-radius-sm);
+  padding: 10px 14px;
+  transition: var(--transition-smooth);
+}
+
+.sportiq-input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px var(--accent-blue-glow);
+  outline: none;
+  background: var(--bg-secondary);
+}
+
+/* Status dots indicators */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.status-dot-green { background-color: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+.status-dot-orange { background-color: var(--accent-orange); box-shadow: 0 0 8px var(--accent-orange); }
+.status-dot-red { background-color: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
+.status-dot-blue { background-color: var(--accent-blue); box-shadow: 0 0 8px var(--accent-blue); }
